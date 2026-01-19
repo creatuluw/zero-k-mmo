@@ -1,0 +1,67 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+.github
+
+# Documentation
+README.md
+*.md
+docs/
+
+# Development and testing
+*.test
+*.spec
+tests/
+test/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build artifacts
+build/
+dist/
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Logs and temporary files
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+
+# Large media files and assets not needed for server
+*.mp3
+*.wav
+*.ogg
+*.jpg
+*.png
+*.tga
+*.dds
+
+# Cache and dependency directories
+node_modules/
+.npm/
+.cache/
+
+# Spring-specific excludes
+screenshots/
+replays/
+cache/
+springsettings.cfg
+springrc.txt
+
+# OS files
+Thumbs.db
+.DS_Store
+*~

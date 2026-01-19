@@ -1,0 +1,48 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile",
+    "buildContext": "."
+  },
+  "deploy": {
+    "startCommand": "/spring/start-dedicated.sh",
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 100,
+    "healthcheckInterval": 30,
+    "restartPolicyType": "ALWAYS",
+    "restartPolicyMaxRetries": 10
+  },
+  "services": {
+    "zero-k-mmo": {
+      "name": "Zero-K Persistent MMO Server",
+      "type": "SERVICE",
+      "ports": [
+        {
+          "port": 8200,
+          "protocol": "UDP",
+          "name": "Game Port"
+        },
+        {
+          "port": 8452,
+          "protocol": "TCP",
+          "name": "Lobby Port"
+        }
+      ],
+      "environment": {
+        "SERVER_NAME": "Persistent Zero-K MMO World",
+        "MAX_PLAYERS": "16",
+        "PERSISTENCE_ENABLED": "true",
+        "PORT": "8200",
+        "LOBBY_PORT": "8452",
+        "GAME_MOD": "Zero-K"
+      },
+      "volumes": [
+        {
+          "name": "persistent-data",
+          "mountPath": "/data/persistent"
+        }
+      ]
+    }
+  }
+}
