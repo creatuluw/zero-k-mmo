@@ -1,12 +1,12 @@
-# Zero-K MMO Server - Quick Start Guide
+# Evolution RTS Server - Quick Start Guide
 
-Get your persistent Zero-K server running in 5 minutes!
+Get your persistent Evolution RTS server running in 5 minutes!
 
 ## 📋 Prerequisites
 
 - [ ] Railway.app account (free at railway.app)
 - [ ] GitHub account
-- [ ] Zero-K lobby client (download from zero-k.info)
+- [ ] Spring lobby client (download from springrts.com)
 
 ## 🚀 3-Step Deployment
 
@@ -16,9 +16,9 @@ Get your persistent Zero-K server running in 5 minutes!
 # Push this project to your GitHub repository
 git init
 git add .
-git commit -m "Zero-K MMO Server"
+git commit -m "Evolution RTS Server"
 git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/zero-k-mmo.git
+git remote add origin https://github.com/YOUR_USERNAME/evolution-rts.git
 git push -u origin main
 ```
 
@@ -49,18 +49,17 @@ railway deploy
 
 ## 🎮 Connect Players
 
-1. **Download Zero-K Lobby** from https://zero-k.info
-2. **Create Account** in the lobby
-3. **Connect**: Click "Multiplayer" → "Direct Connect"
-4. **Enter**: `your-project.up.railway.app:8200`
-5. **Play!** (Map downloads automatically)
+1. **Download Spring Lobby** from https://springrts.com
+2. **Connect**: Click "Multiplayer" → "Direct Connect"
+3. **Enter**: `your-project.up.railway.app:8200`
+4. **Play!** (Maps and mod auto-download)
 
 ## ⚙️ Quick Configuration (Optional)
 
 Set environment variables in Railway dashboard:
 
 ```env
-SERVER_NAME=My Zero-K World
+SERVER_NAME=My Evolution RTS Server
 MAX_PLAYERS=16
 PORT=8200
 ```
@@ -85,9 +84,9 @@ railway domain
 - Verify URL format: `domain:8200`
 - Check if ports 8200/UDP and 8452/TCP are exposed
 
-**Missing map?**
-- Maps auto-download when players connect
-- Or upload via lobby client
+**Missing map or mod?**
+- Evolution RTS mod and maps auto-download when players connect
+- Or upload via Spring lobby client
 
 ## 📊 Cost
 
@@ -112,10 +111,19 @@ railway domain
 - Works 24/7
 - Players can join anytime
 
+## 🎨 Game Features
+
+Evolution RTS offers unique gameplay features:
+- Modern unit designs with stunning visuals
+- Complex strategic depth with multiple factions
+- Dynamic terrain effects
+- Advanced unit abilities and upgrades
+- Realistic physics and projectiles
+
 ---
 
 **Need more details?** See [README.md](README.md) for comprehensive guide or [DEPLOYMENT.md](DEPLOYMENT.md) for advanced configuration.
 
-**Questions?** Join the Zero-K Discord: https://discord.gg/zero-k
+**Questions?** Join the Evolution RTS Discord: https://discord.gg/WUbAs2f
 
 🚀 **Ready to deploy? Start with Step 1 above!**

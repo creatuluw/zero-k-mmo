@@ -14,8 +14,8 @@
     "restartPolicyMaxRetries": 10
   },
   "services": {
-    "zero-k-mmo": {
-      "name": "Zero-K Persistent MMO Server",
+    "evolution-rts": {
+      "name": "Evolution RTS Persistent Server",
       "type": "SERVICE",
       "ports": [
         {
@@ -30,12 +30,12 @@
         }
       ],
       "environment": {
-        "SERVER_NAME": "Persistent Zero-K MMO World",
+        "SERVER_NAME": "Persistent Evolution RTS Server",
         "MAX_PLAYERS": "16",
         "PERSISTENCE_ENABLED": "true",
         "PORT": "8200",
         "LOBBY_PORT": "8452",
-        "GAME_MOD": "Zero-K"
+        "GAME_MOD": "Evolution RTS"
       },
       "volumes": [
         {

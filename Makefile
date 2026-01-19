@@ -1,5 +1,5 @@
 ###############################################################################
-# Zero-K MMO Server - Makefile
+# Evolution RTS Server - Makefile
 # Simplifies local testing and Railway.app deployment
 ###############################################################################
 
@@ -9,9 +9,9 @@
 .DEFAULT_GOAL := help
 
 # Configuration variables
-PROJECT_NAME := zero-k-mmo
-DOCKER_IMAGE := zero-k-server
-CONTAINER_NAME := zero-k-server
+PROJECT_NAME := evolution-rts
+DOCKER_IMAGE := evolution-rts-server
+CONTAINER_NAME := evolution-rts-server
 GAME_PORT := 8200
 LOBBY_PORT := 8452
 DATA_DIR := ./data
@@ -27,7 +27,7 @@ NC := \033[0m # No Color
 # Help target - displays all available commands
 ###############################################################################
 help: ## Show this help message
-	@echo "$(BLUE)Zero-K MMO Server - Makefile Commands$(NC)"
+	@echo "$(BLUE)Evolution RTS Server - Makefile Commands$(NC)"
 	@echo ""
 	@echo "$(GREEN)Development & Testing:$(NC)"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(YELLOW)%-20s$(NC) %s\n", $$1, $$2}'
@@ -61,7 +61,7 @@ build-force: ## Force rebuild and restart
 # Run targets
 ###############################################################################
 run: ## Run server locally in foreground
-	@echo "$(BLUE)Starting Zero-K server locally...$(NC)"
+	@echo "$(BLUE)Starting Evolution RTS server locally...$(NC)"
 	@echo "$(GREEN)Game Port: $(GAME_PORT)/UDP$(NC)"
 	@echo "$(GREEN)Lobby Port: $(LOBBY_PORT)/TCP$(NC)"
 	@echo ""
@@ -74,7 +74,7 @@ run: ## Run server locally in foreground
 		$(DOCKER_IMAGE):latest
 
 run-detached: ## Run server in background
-	@echo "$(BLUE)Starting Zero-K server in background...$(NC)"
+	@echo "$(BLUE)Starting Evolution RTS server in background...$(NC)"
 	@mkdir -p $(DATA_DIR)
 	docker run -d \
 		--name $(CONTAINER_NAME) \
@@ -87,7 +87,7 @@ run-detached: ## Run server in background
 	@echo "Use 'make logs-local' to view logs"
 
 run-dev: ## Run with development settings (verbose logging)
-	@echo "$(BLUE)Starting Zero-K server in development mode...$(NC)"
+	@echo "$(BLUE)Starting Evolution RTS server in development mode...$(NC)"
 	@mkdir -p $(DATA_DIR)
 	docker run -it --rm \
 		--name $(CONTAINER_NAME) \
@@ -99,382 +99,374 @@ run-dev: ## Run with development settings (verbose logging)
 		$(DOCKER_IMAGE):latest
 
 ###############################################################################
-# Control targets
+# Management targets
 ###############################################################################
-stop: ## Stop running container
-	@echo "$(BLUE)Stopping container...$(NC)"
-	-docker stop $(CONTAINER_NAME) 2>/dev/null || true
-	-docker rm $(CONTAINER_NAME) 2>/dev/null || true
-	@echo "$(GREEN)✓ Container stopped$(NC)"
+stop: ## Stop running server
+	@echo "$(YELLOW)Stopping server...$(NC)"
+	docker stop $(CONTAINER_NAME) 2>/dev/null || true
+	docker rm $(CONTAINER_NAME) 2>/dev/null || true
+	@echo "$(GREEN)✓ Server stopped$(NC)"
 
-restart: stop run ## Restart the server
+restart: ## Restart server
+	@echo "$(YELLOW)Restarting server...$(NC)"
+	$(MAKE) stop
+	$(MAKE) run-detached
+	@echo "$(GREEN)✓ Server restarted$(NC)"
 
-restart-detached: stop run-detached ## Restart server in background
+clean: ## Remove Docker images and containers
+	@echo "$(YELLOW)Cleaning up...$(NC)"
+	docker stop $(CONTAINER_NAME) 2>/dev/null || true
+	docker rm $(CONTAINER_NAME) 2>/dev/null || true
+	docker rmi $(DOCKER_IMAGE):latest 2>/dev/null || true
+	@echo "$(GREEN)✓ Cleanup complete$(NC)"
 
-###############################################################################
-# Logs and monitoring
-###############################################################################
-logs-local: ## View local container logs
-	docker logs -f $(CONTAINER_NAME)
-
-logs-local-tail: ## Show last 50 lines of local logs
-	docker logs --tail 50 $(CONTAINER_NAME)
-
-logs-local-error: ## Show only error logs from local container
-	docker logs $(CONTAINER_NAME) 2>&1 | grep -i error || true
-
-stats: ## Show container resource usage
-	@echo "$(BLUE)Container Statistics:$(NC)"
-	docker stats $(CONTAINER_NAME) --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}"
-
-inspect: ## Inspect container details
-	docker inspect $(CONTAINER_NAME)
+clean-all: ## Remove all Docker images, containers, and data
+	@echo "$(RED)Cleaning everything...$(NC)"
+	docker stop $(CONTAINER_NAME) 2>/dev/null || true
+	docker rm $(CONTAINER_NAME) 2>/dev/null || true
+	docker rmi $(DOCKER_IMAGE):latest 2>/dev/null || true
+	rm -rf $(DATA_DIR)
+	@echo "$(GREEN)✓ Complete cleanup finished$(NC)"
 
 ###############################################################################
 # Testing targets
 ###############################################################################
-test: ## Test if server is responding
-	@echo "$(BLUE)Testing server connectivity...$(NC)"
-	@echo "Testing UDP port $(GAME_PORT)..."
-	@timeout 2 bash -c "cat < /dev/null > /dev/udp/127.0.0.1/$(GAME_PORT)" 2>/dev/null && echo "$(GREEN)✓ UDP port $(GAME_PORT) is open$(NC)" || echo "$(RED)✗ UDP port $(GAME_PORT) is not responding$(NC)"
-	@echo "Testing TCP port $(LOBBY_PORT)..."
-	@nc -zv 127.0.0.1 $(LOBBY_PORT) 2>/dev/null && echo "$(GREEN)✓ TCP port $(LOBBY_PORT) is open$(NC)" || echo "$(RED)✗ TCP port $(LOBBY_PORT) is not responding$(NC)"
-
-test-full: ## Run comprehensive tests
-	@echo "$(BLUE)Running comprehensive tests...$(NC)"
-	@$(MAKE) build
-	@$(MAKE) run-detached
-	@echo "Waiting 10 seconds for server to start..."
-	@sleep 10
-	@$(MAKE) test
-	@$(MAKE) logs-local-tail
-	@$(MAKE) stats
-
-###############################################################################
-# Data management
-###############################################################################
-data-backup: ## Backup persistent data
-	@echo "$(BLUE)Creating backup of persistent data...$(NC)"
-	@mkdir -p backups
-	tar -czf backups/backup_$(shell date +%Y%m%d_%H%M%S).tar.gz $(DATA_DIR)
-	@echo "$(GREEN)✓ Backup created$(NC)"
-
-data-restore: ## Restore from latest backup
-	@echo "$(BLUE)Restoring from latest backup...$(NC)"
-	@if [ -f backups/backup_*.tar.gz ]; then \
-		tar -xzf $$(ls -t backups/backup_*.tar.gz | head -1); \
-		echo "$(GREEN)✓ Restore complete$(NC)"; \
+test: build ## Test server connectivity
+	@echo "$(BLUE)Testing server...$(NC)"
+	@echo "$(YELLOW)Starting server in background...$(NC)"
+	@$(MAKE) run-detached > /dev/null 2>&1
+	@sleep 5
+	@echo "$(YELLOW)Checking if server is running...$(NC)"
+	@if docker ps | grep -q $(CONTAINER_NAME); then \
+		echo "$(GREEN)✓ Server is running$(NC)"; \
+		echo "$(GREEN)✓ Container healthy$(NC)"; \
 	else \
-		echo "$(RED)✗ No backup found$(NC)"; \
+		echo "$(RED)✗ Server is not running$(NC)"; \
+		$(MAKE) stop; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)Checking ports...$(NC)"
+	@if command -v nc >/dev/null 2>&1; then \
+		if nc -z localhost $(GAME_PORT) 2>/dev/null; then \
+			echo "$(GREEN)✓ Port $(GAME_PORT)/UDP is accessible$(NC)"; \
+		else \
+			echo "$(YELLOW)⚠ Port $(GAME_PORT)/UDP might not be accessible (UDP check limited)$(NC)"; \
+		fi; \
+		if nc -z localhost $(LOBBY_PORT) 2>/dev/null; then \
+			echo "$(GREEN)✓ Port $(LOBBY_PORT)/TCP is accessible$(NC)"; \
+		else \
+			echo "$(RED)✗ Port $(LOBBY_PORT)/TCP is not accessible$(NC)"; \
+			$(MAKE) stop; \
+			exit 1; \
+		fi; \
+	else \
+		echo "$(YELLOW)⚠ netcat not installed, skipping port checks$(NC)"; \
+	fi
+	@echo "$(GREEN)✓ All tests passed$(NC)"
+	@$(MAKE) stop
+
+test-quick: ## Quick server check (no build)
+	@echo "$(BLUE)Quick server check...$(NC)"
+	@if docker ps | grep -q $(CONTAINER_NAME); then \
+		echo "$(GREEN)✓ Server is running$(NC)"; \
+		docker logs --tail 10 $(CONTAINER_NAME); \
+	else \
+		echo "$(RED)✗ Server is not running$(NC)"; \
+		exit 1; \
 	fi
 
-data-clean: ## Clean old replay files
-	@echo "$(BLUE)Cleaning old data files...$(NC)"
-	@if [ -d "$(DATA_DIR)/replays" ]; then \
-		find $(DATA_DIR)/replays -name "*.ssf" -mtime +30 -delete; \
-		echo "$(GREEN)✓ Cleaned old replays$(NC)"; \
-	fi
-	@if [ -d "$(DATA_DIR)/logs" ]; then \
-		find $(DATA_DIR)/logs -name "*.log" -mtime +7 -delete; \
-		echo "$(GREEN)✓ Cleaned old logs$(NC)"; \
-	fi
+###############################################################################
+# Logging targets
+###############################################################################
+logs: ## View Railway logs (requires Railway CLI)
+	@echo "$(BLUE)Viewing Railway logs...$(NC)"
+	@command -v railway >/dev/null 2>&1 || { \
+		echo "$(RED)Railway CLI not installed$(NC)"; \
+		echo "$(YELLOW)Install with: npm install -g @railway/cli$(NC)"; \
+		exit 1; \
+	}
+	railway logs
 
-data-ls: ## List persistent data
-	@echo "$(BLUE)Persistent Data Contents:$(NC)"
-	@ls -lah $(DATA_DIR) 2>/dev/null || echo "$(YELLOW)No data directory found$(NC)"
+logs-local: ## View local server logs
+	@echo "$(BLUE)Viewing local server logs...$(NC)"
+	docker logs -f $(CONTAINER_NAME) 2>/dev/null || \
+		echo "$(RED)Server is not running. Start with 'make run' or 'make run-detached'$(NC)"
 
-data-shell: ## Open shell in data directory
-	@echo "$(BLUE)Opening shell in data directory...$(NC)"
-	docker exec -it $(CONTAINER_NAME) sh -c "cd /data/persistent && sh"
+logs-persistent: ## View persistent logs from disk
+	@echo "$(BLUE)Viewing persistent logs...$(NC)"
+	@if [ -f "$(DATA_DIR)/logs/server.log" ]; then \
+		tail -f $(DATA_DIR)/logs/server.log; \
+	else \
+		echo "$(RED)No persistent logs found$(NC)"; \
+	fi
 
 ###############################################################################
 # Railway deployment targets
 ###############################################################################
-deploy: ## Deploy to Railway.app
-	@echo "$(BLUE)Deploying to Railway.app...$(NC)"
-	@if command -v railway >/dev/null 2>&1; then \
-		railway up; \
-		railway deploy; \
-		echo "$(GREEN)✓ Deployment complete$(NC)"; \
-	else \
-		echo "$(RED)✗ Railway CLI not installed. Install with: npm install -g @railway/cli$(NC)"; \
-	fi
+init: ## Initialize Railway project
+	@echo "$(BLUE)Initializing Railway project...$(NC)"
+	@command -v railway >/dev/null 2>&1 || { \
+		echo "$(RED)Railway CLI not installed$(NC)"; \
+		echo "$(YELLOW)Install with: npm install -g @railway/cli$(NC)"; \
+		exit 1; \
+	}
+	railway init
+	@echo "$(GREEN)✓ Railway project initialized$(NC)"
 
-deploy-build: ## Only build (don't deploy) on Railway
-	@echo "$(BLUE)Building on Railway...$(NC)"
-	railway up --force-build
+deploy: ## Deploy to Railway
+	@echo "$(BLUE)Deploying to Railway...$(NC)"
+	@command -v railway >/dev/null 2>&1 || { \
+		echo "$(RED)Railway CLI not installed$(NC)"; \
+		echo "$(YELLOW)Install with: npm install -g @railway/cli$(NC)"; \
+		exit 1; \
+	}
+	railway up
+	railway deploy
+	@echo "$(GREEN)✓ Deployment complete$(NC)"
 
-deploy-logs: ## View Railway deployment logs
-	@echo "$(BLUE)Fetching Railway logs...$(NC)"
-	railway logs
+deploy-force: ## Force redeploy to Railway
+	@echo "$(BLUE)Force redeploying to Railway...$(NC)"
+	@command -v railway >/dev/null 2>&1 || { \
+		echo "$(RED)Railway CLI not installed$(NC)"; \
+		echo "$(YELLOW)Install with: npm install -g @railway/cli$(NC)"; \
+		exit 1; \
+	}
+	railway up
+	railway deploy --force
+	@echo "$(GREEN)✓ Force deployment complete$(NC)"
 
-deploy-status: ## Check Railway deployment status
-	@echo "$(BLUE)Railway Status:$(NC)"
-	railway status
-
-deploy-url: ## Get Railway project URL
-	@echo "$(BLUE)Railway URLs:$(NC)"
+domain: ## Get Railway domain URL
+	@echo "$(BLUE)Getting Railway domain...$(NC)"
+	@command -v railway >/dev/null 2>&1 || { \
+		echo "$(RED)Railway CLI not installed$(NC)"; \
+		exit 1; \
+	}
 	railway domain
 
-deploy-open: ## Open Railway project in browser
-	railway open
+status: ## Check Railway deployment status
+	@echo "$(BLUE)Checking Railway status...$(NC)"
+	@command -v railway >/dev/null 2>&1 || { \
+		echo "$(RED)Railway CLI not installed$(NC)"; \
+		exit 1; \
+	}
+	railway status
 
-deploy-env: ## Show Railway environment variables
-	@echo "$(BLUE)Railway Environment Variables:$(NC)"
-	railway variables list
-
-deploy-env-set: ## Set Railway environment variable (usage: make deploy-env-set KEY=VALUE)
-	@if [ -z "$(KEY)" ] || [ -z "$(VALUE)" ]; then \
-		echo "$(RED)Usage: make deploy-env-set KEY=VALUE$(NC)"; \
+###############################################################################
+# Monitoring targets
+###############################################################################
+stats: ## View server resource usage
+	@echo "$(BLUE)Server resource usage:$(NC)"
+	@if docker ps | grep -q $(CONTAINER_NAME); then \
+		docker stats --no-stream $(CONTAINER_NAME); \
 	else \
-		echo "Setting $(KEY)=$(VALUE)"; \
-		railway variables set $(KEY)=$(VALUE); \
+		echo "$(RED)Server is not running$(NC)"; \
 	fi
 
-deploy-down: ## Remove Railway deployment
-	@echo "$(YELLOW)This will remove the Railway deployment. Continue? (y/n)$(NC)"
-	@read -r answer; \
-	if [ "$$answer" = "y" ]; then \
-		railway remove; \
-		echo "$(GREEN)✓ Deployment removed$(NC)"; \
+health: ## Check server health
+	@echo "$(BLUE)Server health check:$(NC)"
+	@if docker ps | grep -q $(CONTAINER_NAME); then \
+		echo "$(GREEN)✓ Container is running$(NC)"; \
+		docker inspect --format='{{.State.Health.Status}}' $(CONTAINER_NAME) 2>/dev/null || echo "$(YELLOW)Health check not configured$(NC)"; \
+	else \
+		echo "$(RED)✗ Container is not running$(NC)"; \
+		exit 1; \
 	fi
 
-###############################################################################
-# SSH and debugging
-###############################################################################
-ssh: ## SSH into Railway container
-	railway open
-
-ssh-local: ## SSH into local container
-	docker exec -it $(CONTAINER_NAME) sh
-
-debug: ## Run container with all ports exposed for debugging
-	@echo "$(BLUE)Starting container in debug mode...$(NC)"
-	docker run -it --rm \
-		--name $(CONTAINER_NAME)-debug \
-		-p 8200-8300:8200-8300/udp \
-		-p 8452-8552:8452-8552/tcp \
-		-v $(PWD)/data:/data/persistent \
-		--cap-add=SYS_PTRACE \
-		--security-opt seccomp=unconfined \
-		$(DOCKER_IMAGE):latest \
-		sh
+monitor: ## Monitor server in real-time
+	@echo "$(BLUE)Monitoring server (press Ctrl+C to stop)...$(NC)"
+	@watch -n 2 'docker stats --no-stream $(CONTAINER_NAME)'
 
 ###############################################################################
-# Cleanup targets
+# SSH targets
 ###############################################################################
-clean: stop ## Stop containers and clean up
-	@echo "$(BLUE)Cleaning up...$(NC)"
-	-docker rmi $(DOCKER_IMAGE):latest 2>/dev/null || true
-	@echo "$(GREEN)✓ Cleanup complete$(NC)"
+ssh: ## SSH into running container
+	@echo "$(BLUE)Opening shell in container...$(NC)"
+	@docker exec -it $(CONTAINER_NAME) bash || \
+		echo "$(RED)Server is not running$(NC)"
 
-clean-all: clean ## Clean everything including volumes
-	@echo "$(YELLOW)Removing all Docker artifacts...$(NC)"
-	-docker system prune -f
-	-docker volume prune -f
-	@echo "$(GREEN)✓ Deep cleanup complete$(NC)"
+ssh-railway: ## SSH into Railway container
+	@echo "$(BLUE)Opening shell in Railway container...$(NC)"
+	@command -v railway >/dev/null 2>&1 || { \
+		echo "$(RED)Railway CLI not installed$(NC)"; \
+		exit 1; \
+	}
+	railway shell
 
-clean-data: ## Clean persistent data directory
-	@echo "$(RED)This will delete all persistent data. Continue? (y/n)$(NC)"
-	@read -r answer; \
-	if [ "$$answer" = "y" ]; then \
-		rm -rf $(DATA_DIR); \
-		echo "$(GREEN)✓ Data directory cleaned$(NC)"; \
+###############################################################################
+# Configuration targets
+###############################################################################
+config: ## Show current configuration
+	@echo "$(BLUE)Current Configuration:$(NC)"
+	@echo ""
+	@echo "Project Name: $(PROJECT_NAME)"
+	@echo "Docker Image: $(DOCKER_IMAGE)"
+	@echo "Container Name: $(CONTAINER_NAME)"
+	@echo "Game Port: $(GAME_PORT)/UDP"
+	@echo "Lobby Port: $(LOBBY_PORT)/TCP"
+	@echo "Data Directory: $(DATA_DIR)"
+	@echo ""
+	@echo "$(GREEN)Docker Images:$(NC)"
+	@docker images $(DOCKER_IMAGE) 2>/dev/null || echo "  No images built"
+	@echo ""
+	@echo "$(GREEN)Running Containers:$(NC)"
+	@docker ps --filter "name=$(CONTAINER_NAME)" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || echo "  No containers running"
+
+config-env: ## Set environment variables for Docker
+	@echo "$(BLUE)Current Environment Variables:$(NC)"
+	@echo "SERVER_NAME=$(SERVER_NAME:-Persistent Evolution RTS Server)"
+	@echo "MAX_PLAYERS=$(MAX_PLAYERS:-16)"
+	@echo "PORT=$(PORT:-8200)"
+	@echo "LOBBY_PORT=$(LOBBY_PORT:-8452)"
+	@echo "GAME_MOD=$(GAME_MOD:-Evolution RTS)"
+
+###############################################################################
+# Backup targets
+###############################################################################
+backup: ## Create backup of persistent data
+	@echo "$(BLUE)Creating backup...$(NC)"
+	@if [ -d "$(DATA_DIR)" ]; then \
+		tar -czf evolution-rts-backup-$$(date +%Y%m%d_%H%M%S).tar.gz $(DATA_DIR); \
+		echo "$(GREEN)✓ Backup created$(NC)"; \
+		ls -lh evolution-rts-backup-*.tar.gz | tail -1; \
+	else \
+		echo "$(YELLOW)No data to backup$(NC)"; \
 	fi
 
-clean-logs: ## Clean log files
-	@echo "$(BLUE)Cleaning log files...$(NC)"
-	find $(DATA_DIR)/logs -name "*.log" -delete 2>/dev/null || true
-	@echo "$(GREEN)✓ Log files cleaned$(NC)"
-
-###############################################################################
-# Git and project management
-###############################################################################
-init: ## Initialize project structure
-	@echo "$(BLUE)Initializing project...$(NC)"
-	@mkdir -p $(DATA_DIR)/{replays,logs,config}
-	@mkdir -p backups
-	@mkdir -p maps
-	@echo "$(GREEN)✓ Project structure initialized$(NC)"
-
-status: ## Show overall project status
-	@echo "$(BLUE)=== Zero-K MMO Server Status ===$(NC)"
-	@echo ""
-	@echo "$(GREEN)Docker Status:$(NC)"
-	@docker ps -a --filter name=$(CONTAINER_NAME) --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || echo "No containers found"
-	@echo ""
-	@echo "$(GREEN)Data Directory:$(NC)"
-	@du -sh $(DATA_DIR) 2>/dev/null || echo "Not found"
-	@echo ""
-	@echo "$(GREEN)Railway Status:$(NC)"
-	@-railway status 2>/dev/null || echo "Not deployed"
-
-info: ## Show detailed project information
-	@echo "$(BLUE)=== Zero-K MMO Server Information ===$(NC)"
-	@echo ""
-	@echo "$(GREEN)Configuration:$(NC)"
-	@echo "  Project Name: $(PROJECT_NAME)"
-	@echo "  Docker Image: $(DOCKER_IMAGE)"
-	@echo "  Container: $(CONTAINER_NAME)"
-	@echo "  Game Port: $(GAME_PORT)/UDP"
-	@echo "  Lobby Port: $(LOBBY_PORT)/TCP"
-	@echo "  Data Directory: $(PWD)/data"
-	@echo ""
-	@echo "$(GREEN)Quick Start:$(NC)"
-	@echo "  1. make build          - Build Docker image"
-	@echo "  2. make run            - Start server"
-	@echo "  3. make deploy         - Deploy to Railway"
-	@echo ""
-	@echo "$(GREEN)Useful Commands:$(NC)"
-	@echo "  make test             - Test connectivity"
-	@echo "  make logs-local       - View logs"
-	@echo "  make stop             - Stop server"
-	@echo "  make clean            - Clean up"
-	@echo ""
-
-###############################################################################
-# Quick start workflow
-###############################################################################
-quickstart: ## Quick start: build and run locally
-	@echo "$(BLUE)Quick Start Workflow$(NC)"
-	@echo "======================"
-	@$(MAKE) init
-	@$(MAKE) build
+restore: ## Restore from backup (specify FILE=filename.tar.gz)
+	@echo "$(BLUE)Restoring from backup...$(NC)"
+	@if [ -z "$(FILE)" ]; then \
+		echo "$(RED)Error: Specify backup file with FILE=filename.tar.gz$(NC)"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(FILE)" ]; then \
+		echo "$(RED)Error: Backup file not found: $(FILE)$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)Stopping server...$(NC)"
+	@$(MAKE) stop
+	@echo "$(YELLOW)Extracting backup...$(NC)"
+	@tar -xzf $(FILE)
+	@echo "$(GREEN)✓ Backup restored$(NC)"
+	@echo "$(YELLOW)Starting server...$(NC)"
 	@$(MAKE) run-detached
-	@echo ""
-	@echo "$(GREEN)✓ Server started!$(NC)"
-	@echo "Use 'make logs-local' to monitor"
-	@echo "Use 'make stop' to stop the server"
 
 ###############################################################################
-# Production workflow
+# Maintenance targets
 ###############################################################################
-production: ## Production deployment to Railway
-	@echo "$(BLUE)Production Deployment$(NC)"
-	@echo "======================="
-	@$(MAKE) build-no-cache
-	@$(MAKE) test
-	@$(MAKE) deploy
-	@echo ""
-	@echo "$(GREEN)✓ Deployed to production!$(NC)"
-	@$(MAKE) deploy-url
-	@echo ""
-	@echo "$(YELLOW)Next steps:$(NC)"
-	@echo "1. Set up persistent volume in Railway dashboard"
-	@echo "2. Configure environment variables"
-	@echo "3. Test connectivity: make deploy-url"
-	@echo "4. Monitor logs: make deploy-logs"
+update: ## Pull latest Evolution RTS mod
+	@echo "$(BLUE)Updating Evolution RTS mod...$(NC)"
+	docker run --rm \
+		-v $(PWD)/data:/data \
+		$(DOCKER_IMAGE):latest \
+		sh -c "cd /spring/games/Evolution\ RTS && git pull"
+	@echo "$(GREEN)✓ Mod updated$(NC)"
 
-###############################################################################
-# Development workflow
-###############################################################################
-dev: ## Development workflow with hot reload
-	@echo "$(BLUE)Development Environment$(NC)"
-	@echo "======================="
-	@$(MAKE) build
-	@$(MAKE) run-dev
-
-###############################################################################
-# Validation targets
-###############################################################################
-validate-docker: ## Validate Dockerfile syntax
-	@echo "$(BLUE)Validating Dockerfile...$(NC)"
-	docker build --dry-run -f Dockerfile .
-	@echo "$(GREEN)✓ Dockerfile valid$(NC)"
-
-validate-config: ## Validate game configuration
-	@echo "$(BLUE)Validating configuration...$(NC)"
-	@if [ -f gameconfig.txt ]; then \
-		grep -q "\[SERVER\]" gameconfig.txt && echo "$(GREEN)✓ Configuration valid$(NC)" || echo "$(RED)✗ Invalid configuration$(NC)"; \
-	else \
-		echo "$(RED)✗ Configuration file not found$(NC)"; \
-	fi
-
-validate: validate-docker validate-config ## Run all validations
-
-###############################################################################
-# Documentation targets
-###############################################################################
-docs: ## Generate documentation
-	@echo "$(BLUE)Generating documentation...$(NC)"
-	@echo "# Zero-K MMO Server - Commands" > COMMANDS.md
-	@echo "" >> COMMANDS.md
-	@echo "Available Make targets:" >> COMMANDS.md
-	@echo "" >> COMMANDS.md
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "- \`make %s\`: %s\n", $$1, $$2}' >> COMMANDS.md
-	@echo "$(GREEN)✓ Documentation generated: COMMANDS.md$(NC)"
-
-###############################################################################
-# Update targets
-###############################################################################
-update-zero-k: ## Update Zero-K mod from GitHub
-	@echo "$(BLUE)Updating Zero-K mod...$(NC)"
-	@if [ -d "games/Zero-K/.git" ]; then \
-		cd games/Zero-K && git pull origin master; \
-	else \
-		rm -rf games/Zero-K; \
-		git clone --depth 1 https://github.com/ZeroK-RTS/Zero-K.git games/Zero-K; \
-	fi
-	@echo "$(GREEN)✓ Zero-K mod updated$(NC)"
-
-update-spring: ## Update Spring engine (modify Dockerfile version)
-	@echo "$(YELLOW)To update Spring engine:$(NC)"
+update-engine: ## Update Spring engine (manual - edit Dockerfile)
+	@echo "$(BLUE)To update Spring engine:$(NC)"
 	@echo "1. Edit Dockerfile"
-	@echo "2. Update Spring download URL"
+	@echo "2. Change the Spring version URL"
 	@echo "3. Run: make build-no-cache"
+	@echo "4. Run: make deploy-force"
 
-###############################################################################
-# Backup and restore targets (Railway)
-###############################################################################
-backup-railway: ## Backup Railway persistent data
-	@echo "$(BLUE)Creating Railway backup...$(NC)"
-	railway volumes list
-	@echo "$(YELLOW)Note: Use Railway dashboard to download volume snapshot$(NC)"
+cleanup-old: ## Cleanup old replay and log files
+	@echo "$(BLUE)Cleaning up old files...$(NC)"
+	@if [ -d "$(DATA_DIR)/replays" ]; then \
+		find $(DATA_DIR)/replays -name "*.ssf" -mtime +30 -delete; \
+		echo "$(GREEN)✓ Old replays removed$(NC)"; \
+	fi
+	@if [ -d "$(DATA_DIR)/logs" ]; then \
+		find $(DATA_DIR)/logs -name "*.log" -mtime +7 -delete; \
+		echo "$(GREEN)✓ Old logs removed$(NC)"; \
+	fi
 
-###############################################################################
-# Monitoring and alerts
-###############################################################################
-monitor: ## Start monitoring dashboard
-	@echo "$(BLUE)Starting monitoring...$(NC)"
-	watch -n 2 'docker stats $(CONTAINER_NAME) --no-stream 2>/dev/null || echo "Container not running"'
-
-health-check: continuous health check
-	@echo "$(BLUE)Running health check...$(NC)"
-	@while true; do \
-		clear; \
-		date; \
-		echo ""; \
-		$(MAKE) test; \
-		$(MAKE) stats; \
-		sleep 5; \
-	done
+analyze: ## Analyze replay files
+	@echo "$(BLUE)Analyzing replays...$(NC)"
+	@if [ -d "$(DATA_DIR)/replays" ]; then \
+		echo "Total replays: $$(find $(DATA_DIR)/replays -name '*.ssf' | wc -l)"; \
+		echo "Total size: $$(du -sh $(DATA_DIR)/replays | cut -f1)"; \
+		echo "Oldest: $$(ls -lt $(DATA_DIR)/replays/*.ssf | tail -1 | awk '{print $$6, $$7, $$8}')"; \
+		echo "Newest: $$(ls -lt $(DATA_DIR)/replays/*.ssf | head -1 | awk '{print $$6, $$7, $$8}')"; \
+	else \
+		echo "$(YELLOW)No replays found$(NC)"; \
+	fi
 
 ###############################################################################
 # Utility targets
 ###############################################################################
-ps: ## Show running containers
-	docker ps -a --filter name=$(CONTAINER_NAME) --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}\t{{.Size}}"
+install: ## Install required tools
+	@echo "$(BLUE)Installing required tools...$(NC)"
+	@if command -v apt-get >/dev/null 2>&1; then \
+		echo "Detected Debian/Ubuntu"; \
+		sudo apt-get update; \
+		sudo apt-get install -y docker.io docker-compose netcat; \
+	elif command -v brew >/dev/null 2>&1; then \
+		echo "Detected macOS (Homebrew)"; \
+		brew install docker docker-compose netcat; \
+	else \
+		echo "$(RED)Unknown package manager$(NC)"; \
+		echo "$(YELLOW)Please install Docker and netcat manually$(NC)"; \
+	fi
+	@echo "$(GREEN)✓ Tools installed$(NC)"
 
-version: ## Show version information
-	@echo "$(BLUE)Zero-K MMO Server$(NC)"
-	@echo "Version: 1.0.0"
-	@echo "Spring RTS: 104.0.1"
-	@echo "Zero-K: Latest from GitHub"
+install-railway: ## Install Railway CLI
+	@echo "$(BLUE)Installing Railway CLI...$(NC)"
+	npm install -g @railway/cli
+	@echo "$(GREEN)✓ Railway CLI installed$(NC)"
+	@echo "$(YELLOW)Run 'railway login' to authenticate$(NC)"
 
-welcome: ## Display welcome message
-	@echo "$(BLUE)"
-	@echo "╔════════════════════════════════════════════════════════════╗"
-	@echo "║          Zero-K MMO Server - Railway Deployment           ║"
-	@echo "╚════════════════════════════════════════════════════════════╝"
-	@echo "$(NC)"
-	@echo "$(GREEN)Quick Start:$(NC)"
-	@echo "  make quickstart     - Build and run locally"
-	@echo "  make production      - Deploy to Railway"
-	@echo "  make help           - Show all commands"
+info: ## Display project information
+	@echo "$(BLUE)Evolution RTS Server Information$(NC)"
+	@echo "=========================================="
+	@echo "Project: $(PROJECT_NAME)"
+	@echo "Description: 24/7 Evolution RTS server on Railway.app"
+	@echo ""
+	@echo "$(GREEN)Repository:$(NC)"
+	@echo "  Game: https://github.com/EvolutionRTS/Evolution-RTS"
+	@echo "  Engine: https://github.com/spring/spring"
 	@echo ""
 	@echo "$(GREEN)Documentation:$(NC)"
-	@echo "  README.md           - Complete setup guide"
-	@echo "  DEPLOYMENT.md       - Deployment documentation"
-	@echo "  make docs           - Generate command reference"
+	@echo "  Game: https://www.evolutionrts.info"
+	@echo "  Engine: https://springrts.com/wiki"
+	@echo "  Railway: https://docs.railway.app"
 	@echo ""
-	@echo "$(YELLOW)Happy gaming! 🎮$(NC)"
+	@echo "$(GREEN)Community:$(NC)"
+	@echo "  Discord: https://discord.gg/WUbAs2f"
+	@echo ""
+	@echo "$(GREEN)Quick Commands:$(NC)"
+	@echo "  make build    - Build Docker image"
+	@echo "  make run      - Start server locally"
+	@echo "  make deploy   - Deploy to Railway"
+	@echo "  make logs     - View logs"
+	@echo "  make ssh      - Access container"
+	@echo "=========================================="
+
+version: ## Show version information
+	@echo "$(BLUE)Version Information$(NC)"
+	@echo "Project: Evolution RTS Server"
+	@echo "Version: 1.0.0"
+	@echo "Updated: January 2025"
+	@echo ""
+	@if docker ps | grep -q $(CONTAINER_NAME); then \
+		echo "$(GREEN)Docker Container:$(NC)"; \
+		docker exec $(CONTAINER_NAME) sh -c "cd /spring/games/Evolution\ RTS && git log --oneline -1" 2>/dev/null || echo "  Unable to get version"; \
+	fi
+
+###############################################################################
+# CI/CD targets (for automated pipelines)
+###############################################################################
+ci-build: ## CI: Build and test
+	@echo "$(BLUE)CI: Building and testing...$(NC)"
+	$(MAKE) build-no-cache
+	$(MAKE) test
+	@echo "$(GREEN)✓ CI build and test passed$(NC)"
+
+ci-deploy: ## CI: Deploy (only if tests pass)
+	@echo "$(BLUE)CI: Deploying...$(NC)"
+	$(MAKE) ci-build
+	$(MAKE) deploy
+	@echo "$(GREEN)✓ CI deployment complete$(NC)"
+
+.PHONY: all-commands
+all-commands: ## List all make targets
+	@echo "$(BLUE)All Available Commands:$(NC)"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(YELLOW)%-30s$(NC) %s\n", $$1, $$2}'

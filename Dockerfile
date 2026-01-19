@@ -1,4 +1,4 @@
-# Zero-K Persistent MMO Server - Railway.app Deployment
+# Evolution RTS Persistent MMO Server - Railway.app Deployment
 FROM ubuntu:22.04
 
 # Prevent interactive prompts during package installation
@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /spring
 
 # Download and install Spring RTS engine (dedicated server)
-# Using the latest stable Linux version (106.0)
+# Using a stable Linux version that supports Evolution RTS
 RUN wget https://springrts.com/dl/buildbot/default/master/106.0/linux64/spring_106.0_minimal-portable-linux64-static.7z -O spring.7z \
     && 7z x spring.7z \
     && rm spring.7z
@@ -39,12 +39,11 @@ RUN wget https://springrts.com/dl/buildbot/default/master/106.0/linux64/spring_1
 # Create directory structure for Spring
 RUN mkdir -p /spring/games /spring/maps /spring/replays /spring/screenshots /spring/cache
 
-# Clone Zero-K mod from GitHub (using depth 1 for faster download)
+# Clone Evolution RTS mod from GitHub (using depth 1 for faster download)
 WORKDIR /spring/games
-RUN git clone --depth 1 https://github.com/ZeroK-RTS/Zero-K.git Zero-K
+RUN git clone --depth 1 https://github.com/EvolutionRTS/Evolution-RTS.git "Evolution RTS"
 
-# Download a popular map for Zero-K (Comet Catcher Remake)
-# This is a well-known map that works well for multiplayer
+# Download a popular map for Evolution RTS (Comet Catcher Remake works well)
 WORKDIR /spring/maps
 RUN wget https://files.springrts.com/spring/sd7/Comet%20Catcher%20Remake.v03.sd7 -O "Comet Catcher Remake.v03.sd7" \
     || wget https://springfiles.springrts.com/spring/sd7/Comet%20Catcher%20Remake.v03.sd7 -O "Comet Catcher Remake.v03.sd7" \
@@ -67,7 +66,7 @@ LobbyAddress =
 LobbyPort = 8452
 LobbyLoginPassword =
 LobbyLoginOldPassword =
-LobbyUsername = Zero-K-Server
+LobbyUsername = EvolutionRTS-Server
 NatTraversal = 0
 DirectConnect = 1
 EOF
@@ -75,19 +74,16 @@ EOF
 # Create game configuration file
 RUN cat > /spring/gameconfig.txt << 'EOF'
 [SERVER]
-Name = Persistent Zero-K MMO World
-Description = 24/7 Zero-K server - Join with your lobby client
+Name = Persistent Evolution RTS MMO World
+Description = 24/7 Evolution RTS server - Join with your lobby client
 Password =
 MaxPlayers = 16
 Port = 8200
 Map = Comet Catcher Remake
-Game = Zero-K
+Game = Evolution RTS
 AutoKick = 1
 IP = 0.0.0.0
 Rank = 0
-[MODOPTIONS]
-persistenteconomy = 1
-persistenceenabled = 1
 EOF
 
 # Create startup script
@@ -95,10 +91,10 @@ RUN cat > /spring/start-dedicated.sh << 'EOF'
 #!/bin/bash
 set -e
 
-echo "Starting Zero-K Dedicated Server..."
+echo "Starting Evolution RTS Dedicated Server..."
 echo "Game Port: 8200/UDP"
 echo "Lobby Port: 8452/TCP"
-echo "Server Name: Persistent Zero-K MMO World"
+echo "Server Name: Persistent Evolution RTS MMO World"
 
 # Wait for filesystem to be ready
 sleep 2
@@ -125,7 +121,7 @@ ln -sf /data/persistent/logs /spring/logs
 exec /spring/spring-dedicated \
     --config=/spring/springrc-dedicated.txt \
     --isolated \
-    --game="Zero-K" \
+    --game="Evolution RTS" \
     --script="/spring/gameconfig.txt" \
     2>&1 | tee -a /data/persistent/logs/server.log
 EOF

@@ -1,6 +1,6 @@
 #!/bin/bash
 ###############################################################################
-# Zero-K Dedicated Server Startup Script
+# Evolution RTS Dedicated Server Startup Script
 # Railway.app Deployment - Advanced Configuration
 ###############################################################################
 
@@ -11,11 +11,11 @@ set -e
 ###############################################################################
 
 # Server configuration
-SERVER_NAME="${SERVER_NAME:-Persistent Zero-K MMO World}"
+SERVER_NAME="${SERVER_NAME:-Persistent Evolution RTS Server}"
 MAX_PLAYERS="${MAX_PLAYERS:-16}"
 GAME_PORT="${PORT:-8200}"
 LOBBY_PORT="${LOBBY_PORT:-8452}"
-GAME_MOD="${GAME_MOD:-Zero-K}"
+GAME_MOD="${GAME_MOD:-Evolution RTS}"
 
 # Persistence paths
 PERSISTENT_DIR="/data/persistent"
@@ -126,6 +126,9 @@ update_config_with_env_vars() {
 
     # Update port
     sed -i "s/^Port = .*/Port = ${GAME_PORT}/" "${config_file}"
+
+    # Update game mod
+    sed -i "s/^Game = .*/Game = ${GAME_MOD}/" "${config_file}"
 
     log_success "Configuration updated with environment variables"
 }
@@ -268,11 +271,11 @@ cleanup_and_restart() {
 ###############################################################################
 
 start_server() {
-    log_info "Starting Zero-K dedicated server..."
+    log_info "Starting Evolution RTS dedicated server..."
 
     # Display server information
     echo "=========================================="
-    echo "Zero-K Dedicated Server"
+    echo "Evolution RTS Dedicated Server"
     echo "=========================================="
     echo "Server Name: ${SERVER_NAME}"
     echo "Max Players: ${MAX_PLAYERS}"
@@ -329,7 +332,7 @@ start_server() {
 
 main() {
     echo "=========================================="
-    echo "Zero-K Dedicated Server Startup"
+    echo "Evolution RTS Dedicated Server Startup"
     echo "Railway.app Deployment"
     echo "=========================================="
 

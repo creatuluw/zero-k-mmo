@@ -1,11 +1,11 @@
 [SERVER]
-Name = Persistent Zero-K MMO World
-Description = 24/7 Persistent RTS MMO - Build empires, form alliances, conquer territories!
+Name = Persistent Evolution RTS Server
+Description = 24/7 Evolution RTS server - Join with your lobby client
 Password =
 MaxPlayers = 16
 Port = 8200
 Map = Comet Catcher Remake
-Game = Zero-K
+Game = Evolution RTS
 AutoKick = 1
 IP = 0.0.0.0
 Rank = 0
@@ -23,43 +23,19 @@ LobbyMaxPing = 0
 LobbyAddress =
 LobbyLoginPassword =
 LobbyLoginOldPassword =
-LobbyUsername = Zero-K-Server
-
-[MODOPTIONS]
-persistenteconomy = 1
-persistenceenabled = 1
-persistenteconomyinterval = 60
-persistenteconomyfile = /data/persistent/economy_data.lua
-persistenteconomyreset = 0
-auto_share_resources = 1
-allied_control_sharing = 1
-unit_explode_features = 1
-
-[MMO]
-PersistentWorld = 1
-WorldPersistenceFile = /data/persistent/world_state.lua
-SaveInterval = 300
-AutoSave = 1
-PlayerPersistence = 1
-AlliancePersistence = 1
-TerritorySystem = 1
-ResourceNodes = 1
-ResourceNodeRespawn = 600
+LobbyUsername = EvolutionRTS-Server
 
 [BALANCE]
 StartMetal = 1000
 StartEnergy = 1000
 MaxUnits = 2000
-UnitLimit = 500
 BuildPower = 1.0
 MetalMultiplier = 1.0
 EnergyMultiplier = 1.0
-MexIncome = 1.0
-EnergyIncome = 1.0
 
 [GAMEPLAY]
-GameMode = persistent_mmo
-VictoryCondition = domination
+GameMode = standard
+VictoryCondition = commander
 GameSpeed = 1.0
 GhostedBuildings = 1
 ReclaimableFeatures = 1
@@ -70,14 +46,11 @@ MapWaterLevel = 0
 AIDifficulty = 2
 AIEnabled = 1
 AIAutoControl = 0
-AIDebug = 0
 
 [SECURITY]
 AntiCheat = 1
 ValidateUnits = 1
 ValidateGameSpeed = 1
-MaxDesyncCount = 3
-KickOnDesync = 1
 
 [NETWORK]
 NetworkQuality = high
@@ -91,15 +64,6 @@ LogLevel = 2
 LogDirectory = /data/persistent/logs
 ChatLog = 1
 BattleLog = 1
-PlayerStatsLog = 1
-
-[PERSISTENCE]
-PlayerDataFile = /data/persistent/player_data.lua
-AllianceDataFile = /data/persistent/alliance_data.lua
-BattleHistoryFile = /data/persistent/battle_history.lua
-AutoSaveInterval = 300
-SaveOnGameEnd = 1
-SaveOnPlayerLeave = 0
 
 [REPLAYS]
 AutoRecord = 1
@@ -108,11 +72,9 @@ ReplayRetention = 30
 CompressReplays = 1
 
 [MATCHMAKING]
-AutoMatchmaking = 1
+AutoMatchmaking = 0
 BalanceTeams = 1
-BalanceMethod = elo
 MinPlayersToStart = 2
-MaxWaitTime = 300
 AutoRestart = 1
 RestartDelay = 60
 
@@ -129,7 +91,6 @@ MapRotation = 0
 MapPool = Comet Catcher Remake,Small Divisions,Dry River
 RandomMap = 0
 MapVote = 0
-MapVoteTime = 60
 
 [NOTIFICATIONS]
 DiscordWebhook =
@@ -137,8 +98,6 @@ TelegramBotToken =
 TelegramChatID =
 AnnounceGameStart = 0
 AnnounceGameEnd = 0
-PlayerJoinNotification = 0
-PlayerLeaveNotification = 0
 
 [ADMIN]
 AdminList =
@@ -147,12 +106,3 @@ AdminPassword =
 AllowBan = 1
 BanListFile = /data/persistent/banlist.lua
 AllowKick = 1
-KickReasonRequired = 1
-
-[OPTIMIZATION]
-UsePerformanceMode = 1
-DisableParticles = 0
-DisableEffects = 0
-MaxUnitParticles = 1000
-RenderDistance = 2000
-LODMode = auto

@@ -1,15 +1,15 @@
-# Zero-K Persistent MMO Server on Railway.app
+# Evolution RTS Persistent Server on Railway.app
 
-Deploy Zero-K, an open-source RTS game, as a persistent 24/7 multiplayer world on Railway.app. This deployment provides a dedicated server that players can join anytime using the Zero-K lobby client.
+Deploy Evolution RTS, an open-source RTS game, as a persistent 24/7 multiplayer server on Railway.app. This deployment provides a dedicated server that players can join anytime using the Spring lobby client.
 
 ## 🎮 Features
 
 - **24/7 Persistent Server**: Always available for multiplayer battles
-- **MMO-Style Gameplay**: Players build economies, command smart units, and wage large-scale battles
+- **Evolution RTS Gameplay**: Modern real-time strategy with unique units and mechanics
 - **Automatic Persistence**: Game replays and configurations saved automatically
 - **Easy Deployment**: Containerized setup using Docker on Railway.app
-- **Scalable**: Horizontal scaling support for multiple battle worlds
-- **Zero-K RTS Engine**: Physical projectiles, smart units, and powerful UI
+- **Scalable**: Horizontal scaling support for multiple battle servers
+- **Spring Engine**: Robust game engine supporting large-scale battles
 - **Auto-Restart**: Server automatically restarts if it crashes
 - **Persistent Storage**: Game state, replays, and logs saved across deployments
 
@@ -17,7 +17,7 @@ Deploy Zero-K, an open-source RTS game, as a persistent 24/7 multiplayer world o
 
 1. **Railway.app Account**: Create a free account at railway.app
 2. **GitHub Repository**: Push this project to GitHub
-3. **Zero-K Lobby Client**: Download from zero-k.info for players to connect
+3. **Spring Lobby Client**: Download from springrts.com for players to connect
 4. **Basic Understanding**: Familiarity with Docker and Railway deployment
 
 ## 🚀 Quick Start
@@ -27,10 +27,10 @@ Deploy Zero-K, an open-source RTS game, as a persistent 24/7 multiplayer world o
 Clone or download this project structure and push to GitHub:
 
 ```bash
-git clone https://github.com/ZeroK-RTS/Zero-K.git zero-k-mmo
-cd zero-k-mmo
+git clone https://github.com/EvolutionRTS/Evolution-RTS.git evolution-rts-server
+cd evolution-rts-server
 git add .
-git commit -m "Initial Zero-K MMO server setup"
+git commit -m "Initial Evolution RTS server setup"
 git push origin main
 ```
 
@@ -38,7 +38,7 @@ git push origin main
 
 1. Go to [railway.app](https://railway.app)
 2. Click "New Project" → "Deploy from GitHub repo"
-3. Select your Zero-K repository
+3. Select your Evolution RTS repository
 4. Railway will automatically detect the Dockerfile and build the service
 
 ### 3. Configure the Service
@@ -52,11 +52,11 @@ In Railway dashboard:
    - Mount path: `/data/persistent`
 
 2. **Set Environment Variables** (optional, overrides defaults):
-   - `SERVER_NAME`: "Persistent Zero-K MMO World"
+   - `SERVER_NAME`: "Persistent Evolution RTS Server"
    - `MAX_PLAYERS`: "16"
    - `PORT`: "8200"
    - `LOBBY_PORT`: "8452"
-   - `GAME_MOD`: "Zero-K"
+   - `GAME_MOD`: "Evolution RTS"
 
 3. **Expose Ports**:
    - UDP: 8200 (Game port)
@@ -73,19 +73,18 @@ Once deployed, Railway provides:
 
 ### For Players
 
-1. **Download Zero-K Lobby**: Get the client from [zero-k.info](https://zero-k.info)
-2. **Create Account**: Register a free account (required for matchmaking)
-3. **Join Your Server**:
-   - Open Zero-K Lobby
+1. **Download Spring Lobby**: Get the client from [springrts.com](https://springrts.com)
+2. **Join Your Server**:
+   - Open Spring Lobby
    - Click "Multiplayer" → "Direct Connect"
    - Enter your Railway domain and port: `your-project.up.railway.app:8200`
-   - Or search for "Persistent Zero-K MMO World" in server browser
+   - Or search for "Persistent Evolution RTS Server" in server browser
 
 ### Server Features Available
 
 - **Public Battles**: Open for anyone to join
 - **Password Protection**: Set via `gameconfig.txt` if needed
-- **Auto-Matchmaking**: Players automatically paired in battles
+- **Auto-Host**: Automatic game hosting when players join
 - **Replay System**: All games saved for review
 - **Chat & Alliance**: In-game communication and team formation
 
@@ -97,19 +96,15 @@ Edit `gameconfig.txt` in your repository before deploying:
 
 ```ini
 [SERVER]
-Name = Persistent Zero-K MMO World
-Description = 24/7 Zero-K server - Join with your lobby client
+Name = Persistent Evolution RTS Server
+Description = 24/7 Evolution RTS server - Join with your lobby client
 Password =                      # Leave empty for public
 MaxPlayers = 16
 Port = 8200
 Map = Comet Catcher Remake      # Change map as desired
-Game = Zero-K
+Game = Evolution RTS
 AutoKick = 1                    # Auto-kick AFK players
 IP = 0.0.0.0
-
-[MODOPTIONS]
-persistenteconomy = 1           # Enable economy persistence
-persistenceenabled = 1          # Enable game state persistence
 ```
 
 ### Custom Maps
@@ -124,16 +119,13 @@ To add custom maps:
    git push
    ```
 
-Or upload maps through the Zero-K lobby client directly.
+Or upload maps through the Spring lobby client directly.
 
-## 🌐 MMO Persistence Features
+## 🌐 Persistence Features
 
 ### What Gets Saved
 
 - **Game Replays**: Every battle is recorded and stored
-- **Player Statistics**: Wins, losses, and performance metrics
-- **Economy Data**: Resource collection and spending (if enabled)
-- **Chat Logs**: Game communications (optional)
 - **Configurations**: Server settings persist across restarts
 
 ### Accessing Saved Data
@@ -149,19 +141,6 @@ All persistent data is stored in the Railway volume at `/data/persistent/`:
 
 You can access these files via Railway's file browser or by SSH-ing into the container.
 
-### Auto-Host Scripts
-
-For advanced MMO features, you can integrate **SPADS** (Spring Auto-Hosting Daemon):
-
-1. Download SPADS from [springrts.com](https://springrts.com/wiki/SPADS)
-2. Configure it in your Dockerfile
-3. SPADS provides:
-   - Automatic matchmaking
-   - Player authentication
-   - Map rotation
-   - Custom commands
-   - Anti-cheat measures
-
 ## 📊 Scaling Options
 
 ### Horizontal Scaling
@@ -170,7 +149,7 @@ For multiple concurrent battles:
 
 1. **Deploy Multiple Services**: Create multiple Railway services from the same repo
 2. **Load Balancer**: Use Railway's load balancer
-3. **Different Maps**: Each service can run different maps/mods
+3. **Different Maps**: Each service can run different maps
 4. **Separate Domains**: Each service gets its own Railway URL
 
 ### Resource Optimization
@@ -231,26 +210,31 @@ tail -f /data/persistent/logs/server.log
 
 ## 🔧 Advanced Customization
 
-### Lua Mods for MMO Features
+### Lua Mods for Custom Features
 
-Zero-K supports Lua scripting for custom game rules:
+Evolution RTS supports Lua scripting for custom game rules:
 
-1. Create custom Lua files in `LuaRules/` directory
-2. Implement MMO mechanics like:
-   - Persistent territories
-   - Resource sharing
-   - Alliance systems
-   - Tech tree modifications
+1. Create custom Lua files in the Evolution RTS mod directory
+2. Implement custom mechanics like:
+   - Custom victory conditions
+   - Resource modifications
+   - Unit balance tweaks
 3. Edit `modinfo.lua` to reference your custom scripts
 
-Example persistent economy mod:
+Example mod modification:
 ```lua
--- LuaRules/persistent_economy.lua
-function PersistentEconomy:Initialize()
-    if Spring.GetModOptions().persistenteconomy == "1" then
-        self:LoadSavedEconomy()
-    end
-end
+-- In ModOptions.lua
+return {
+    {
+        key="startmetal",
+        name="Starting Metal",
+        desc="Amount of metal each player starts with",
+        type="number",
+        def=1000,
+        min=0,
+        max=10000,
+    },
+}
 ```
 
 ### Custom Lobby Integration
@@ -285,39 +269,39 @@ Optional external monitoring:
 
 Contributions welcome! Areas of interest:
 
-- **Custom Mods**: Create MMO-specific game modes
-- **Better Auto-Hosting**: Improve SPADS integration
+- **Custom Mods**: Create EvoRTS-specific game modes
+- **Better Auto-Hosting**: Improve auto-host integration
 - **Web UI**: Browser-based server management
 - **Analytics**: Player statistics and game analysis
 
 ## 📝 License
 
-- **Zero-K Game**: GPL-2.0 license (see Zero-K repo)
+- **Evolution RTS Game**: GPL-2.0 license (see Evolution-RTS repo)
 - **Spring Engine**: GPL-2.0 license
 - **This Deployment**: MIT license
 
 ## 🙏 Acknowledgments
 
-- [Zero-K Team](https://zero-k.info) - For the amazing RTS game
+- [Evolution RTS Team](https://www.evolutionrts.info) - For the amazing RTS game
 - [Spring RTS Engine](https://springrts.com) - The game engine
 - [Railway.app](https://railway.app) - Deployment platform
 
 ## 📚 Additional Resources
 
-- **Zero-K Wiki**: https://zero-k.info/mediawiki
+- **Evolution RTS Website**: https://www.evolutionrts.info
+- **Evolution RTS Discord**: https://discord.gg/WUbAs2f
 - **Spring RTS Documentation**: https://springrts.com/wiki
 - **Railway Documentation**: https://docs.railway.app
-- **SPADS Auto-Host**: https://springrts.com/wiki/SPADS
 
 ## 🎯 Next Steps
 
 1. ✅ Deploy this repository to Railway
 2. ✅ Configure persistent volumes and ports
-3. ✅ Test server connectivity with Zero-K lobby
+3. ✅ Test server connectivity with Spring lobby
 4. ✅ Invite players and monitor first battles
 5. ✅ Customize settings based on feedback
 6. ✅ Scale up as player base grows
 
 ---
 
-**Ready to build your persistent RTS empire? Deploy now and start inviting players to your Zero-K MMO world! 🚀**
+**Ready to build your persistent RTS empire? Deploy now and start inviting players to your Evolution RTS server! 🚀**
