@@ -31,7 +31,7 @@ WORKDIR /spring
 
 # Download and install Spring RTS engine (dedicated server)
 # Using the latest stable Linux version
-RUN wget https://sourceforge.net/projects/springrts/files/spring/spring%20104.0.1-1803/spring_104.0.1-1803_linux64-minimal-nosdlnotify.tar.gz/download -O spring.tar.gz \
+RUN wget https://github.com/spring/spring/releases/download/v104.0.1-1930-gf923782/spring_104.0.1-1930_linux64-minimal-nosdlnotify.tar.gz -O spring.tar.gz \
     && tar -xzf spring.tar.gz \
     && rm spring.tar.gz
 
