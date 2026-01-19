@@ -137,9 +137,6 @@ RUN chmod +x /spring/start-dedicated.sh
 EXPOSE 8200/udp
 EXPOSE 8452/tcp
 
-# Create data directory for persistent volume
-VOLUME ["/data/persistent"]
-
 # Set working directory for startup
 WORKDIR /spring
 
