@@ -7,6 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install necessary dependencies for Spring RTS engine
 RUN apt-get update && apt-get install -y \
     wget \
+    p7zip \
     unzip \
     git \
     lua5.1 \
@@ -30,10 +31,10 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /spring
 
 # Download and install Spring RTS engine (dedicated server)
-# Using the latest stable Linux version
-RUN wget https://springfiles.springrts.com/spring/spring_104.0.1-1930_linux64-minimal-nosdlnotify.tar.gz -O spring.tar.gz \
-    && tar -xzf spring.tar.gz \
-    && rm spring.tar.gz
+# Using the latest stable Linux version (106.0)
+RUN wget https://springrts.com/dl/buildbot/default/master/106.0/linux64/spring_106.0_minimal-portable-linux64-static.7z -O spring.7z \
+    && 7z x spring.7z \
+    && rm spring.7z
 
 # Create directory structure for Spring
 RUN mkdir -p /spring/games /spring/maps /spring/replays /spring/screenshots /spring/cache
